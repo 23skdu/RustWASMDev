@@ -1,0 +1,23 @@
+FROM rust:latest
+
+RUN set -x && \
+    apt update && apt upgrade -y \
+    && apt-get install -y nginx npm nodejs rust-all libjson-perl libyaml-perl \
+    libio-socket-inet6-perl libio-bufferedselect-perl \
+    && ln -sf /dev/stdout /var/log/nginx/access.log \
+    && ln -sf /dev/stderr /var/log/nginx/error.log \
+    && apt-get remove --purge --auto-remove -y && rm -rf /var/lib/apt/lists* \
+    && cargo install wasm-pack
+
+RUN cpan install IO::Compress::Gzip IO::Socket::SSL IO::Select \
+    Test::More Test::Subroutines \
+    Perl::Critic Test::Perl::Critic File::Which \
+    Math::Random::Secure Text::Lorem Digest::xxHash \
+    Log::Agent Log::Log4perl::Layout::JSON \
+    LWP::Protocol::https Memory::Process Proc::Stat \ 
+    && rm -rf /root/.cpan && rm -rf /tmp/* 
+
+STOPSIGNAL SIGQUIT
+
+EXPOSE 80 443
+CMD ["nginx", "-g", "daemon off;"]
